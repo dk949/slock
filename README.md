@@ -1,6 +1,7 @@
 slock - simple screen locker
 ============================
 simple screen locker utility for X.
+This version of slock has been slightly altered to work with arch linux
 
 
 Requirements
