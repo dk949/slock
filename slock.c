@@ -21,6 +21,9 @@
 
 #include "arg.h"
 #include "util.h"
+#ifndef VERSION
+#define VERSION "unknown"
+#endif
 
 char *argv0;
 
