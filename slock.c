@@ -4,7 +4,6 @@
 #include <shadow.h>
 #endif
 
-#include "arg.h"
 #include "util.h"
 
 #include <X11/Xlib.h>
@@ -285,16 +284,15 @@ int main(int argc, char **argv) {
     const char *hash;
     Display *dpy;
     int s, nlocks, nscreens;
-
-    ARGBEGIN {
-        case 'v':
-            fprintf(stderr, "slock-" VERSION "\n");
-            return 0;
+    switch (argc){
+        case 0: break;
+        case 1: break;
+        case 2:
+            if(argv[1][0] == '-' && argv[1][1] == 'v')
+                die("slock-" VERSION "\n");
         default:
-            usage();
+            die("usage: slock [-v]\n");
     }
-    ARGEND
-
     /* validate drop-user and -group */
     errno = 0;
     if (!(pwd = getpwnam(user)))
