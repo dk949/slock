@@ -1,5 +1,8 @@
 /* See LICENSE file for license details. */
 #define _XOPEN_SOURCE 500
+#ifndef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE
+#endif
 #if HAVE_SHADOW_H
 #include <shadow.h>
 #endif
@@ -10,6 +13,7 @@
 #include <X11/Xutil.h>
 #include <X11/extensions/Xrandr.h>
 #include <X11/keysym.h>
+#include <crypt.h>
 #include <ctype.h>
 #include <errno.h>
 #include <grp.h>
@@ -20,6 +24,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
+
 #ifndef VERSION
 #define VERSION "unknown"
 #endif
@@ -171,7 +176,7 @@ static void readpw(Display *dpy, struct xrandr *rr, struct lock **locks, int nsc
                     break;
             }
             color = len ? INPUT : ((failure || failonclear) ? FAILED : INIT);
-            if (running && oldc != color) {
+            if (running && (unsigned)oldc != color) {
                 for (screen = 0; screen < nscreens; screen++) {
                     XSetWindowBackground(dpy, locks[screen]->win, locks[screen]->colors[color]);
                     XClearWindow(dpy, locks[screen]->win);
@@ -270,9 +275,6 @@ static struct lock *lockscreen(Display *dpy, struct xrandr *rr, int screen) {
     return NULL;
 }
 
-static void usage(void) {
-    die("usage: slock [-v] [cmd [arg ...]]\n");
-}
 
 int main(int argc, char **argv) {
     struct xrandr rr;
@@ -290,6 +292,7 @@ int main(int argc, char **argv) {
         case 2:
             if(argv[1][0] == '-' && argv[1][1] == 'v')
                 die("slock-" VERSION "\n");
+            /*fallthrough*/
         default:
             die("usage: slock [-v]\n");
     }
@@ -341,20 +344,6 @@ int main(int argc, char **argv) {
     /* did we manage to lock everything? */
     if (nlocks != nscreens)
         return 1;
-
-    /* run post-lock command */
-    if (argc > 0) {
-        switch (fork()) {
-            case -1:
-                die("slock: fork failed: %s\n", strerror(errno));
-            case 0:
-                if (close(ConnectionNumber(dpy)) < 0)
-                    die("slock: close: %s\n", strerror(errno));
-                execvp(argv[0], argv);
-                fprintf(stderr, "slock: execvp %s: %s\n", argv[0], strerror(errno));
-                _exit(1);
-        }
-    }
 
     /* everything is now blank. Wait for the correct password */
     readpw(dpy, &rr, locks, nscreens, hash);
