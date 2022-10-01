@@ -6,6 +6,12 @@ include config.mk
 SRC = slock.c ${COMPATSRC}
 OBJ = ${SRC:.c=.o}
 
+CWARN= -Wall -Wextra -Wshadow -Wcast-align -Wunused -Wpedantic \
+	   -Wnull-dereference -Wdouble-promotion -Wformat=2 -Wmisleading-indentation \
+	   -Wduplicated-cond -Wduplicated-branches -Wlogical-op
+
+CFLAGS += ${CWARN}
+
 all: slock
 
 .c.o:
