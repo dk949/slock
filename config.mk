@@ -1,23 +1,27 @@
 # slock version
-VERSION = 1.4
+
+DATE         = $(shell git log -1 --format='%cd' --date=format:'%F')
+DATE_TIME    = $(DATE) 00:00
+COMMIT_COUNT = $(shell git rev-list --count HEAD --since="$(DATE_TIME)")
+VERSION      = 1.4.$(shell date -d "$(DATE)" +'%Y%m%d')_$(COMMIT_COUNT)
 
 # Customize below to fit your system
 
 # paths
-PREFIX = /usr/local
-MANPREFIX = ${PREFIX}/share/man
+DESTDIR   ?=
+PREFIX    ?= /usr/local
+MANPREFIX = $(PREFIX)/share/man
 
-X11INC = /usr/X11R6/include
-X11LIB = /usr/X11R6/lib
+REQ_LIBS = x11 xext xrandr libcrypt
 
 # includes and libs
-INCS = -I${X11INC}
-LIBS = -L/usr/lib -lc -lcrypt -L${X11LIB} -lX11 -lXext -lXrandr
+LIBFLAGS = `pkg-config $(REQ_LIBS) --cflags`
+LIBS     = `pkg-config $(REQ_LIBS) --libs`
 
 # flags
-CPPFLAGS = -DVERSION=\"${VERSION}\" -D_DEFAULT_SOURCE -DHAVE_SHADOW_H
-CFLAGS = -std=c99 -pedantic -Wall -Og -g ${INCS} ${CPPFLAGS}
-LDFLAGS = ${LIBS}
+CPPFLAGS = -DVERSION=\"$(VERSION)\" -D_DEFAULT_SOURCE -DHAVE_SHADOW_H
+CFLAGS = -std=c99 -pedantic -Wall -Og -g $(LIBFLAGS) $(CPPFLAGS)
+LDFLAGS = $(LIBS)
 COMPATSRC = explicit_bzero.c
 
 # On OpenBSD and Darwin remove -lcrypt from LIBS
